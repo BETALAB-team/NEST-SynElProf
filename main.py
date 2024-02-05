@@ -7,6 +7,8 @@ import glob
 
 from scipy.stats import lognorm, triang, weibull_min, gamma, norm, expon, uniform, beta
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
 import pandas as pd
 import numpy as np
 from electric_load_italian_distribution import get_italian_random_el_consumption
@@ -42,7 +44,7 @@ def average_profile_creation_from_ARERA(
     """
 
     data_ARERA = pd.read_csv(os.path.join("Data","Dati_orari_ARERA_2021.csv"), index_col = [0,1,2,3,4], header = [0,1], sep = ";")
-    selected_province = pd.DataFrame(0, index = pd.date_range("00:00", periods = 24, freq = "1H"),columns = pd.MultiIndex.from_product([np.arange(12),["Weekday", "Sunday", "Saturday"]]))
+    selected_province = pd.DataFrame(0, index = pd.date_range("00:00", periods = 24, freq = "1h"),columns = pd.MultiIndex.from_product([np.arange(12),["Weekday", "Sunday", "Saturday"]]))
 
     months ={
              "gen-21": [0,31],
@@ -83,7 +85,7 @@ def average_profile_creation_from_ARERA(
         initial_day_number = initial_day_number + day_number
 
     distribution = np.vstack([distribution, distribution[-1,:]])
-    distribution = pd.DataFrame(distribution, index=pd.date_range("00:00", periods = 25, freq = "1H")).resample(time_step).interpolate("linear").values
+    distribution = pd.DataFrame(distribution, index=pd.date_range("00:00", periods = 25, freq = "1h")).resample(time_step).interpolate("linear").values
     distribution = distribution[:-1,:]
 
     return distribution
@@ -177,7 +179,7 @@ def generation_profile(consumo_annuale,
 
 
 if __name__ == "__main__":
-    numero_utenze = 1000
+    numero_utenze = 100
     provincia = "Padova"
     region = "Veneto"
     mercato = "Tutti"
@@ -185,14 +187,14 @@ if __name__ == "__main__":
     residenza = "Tutti"
     giorno_iniziale = 2 # Wednesday
     time_step = "10min"
-    ts_per_hour = 600
+    ts_per_hour = 6
 
     # consumo_annuale = 3000. # kWh
     # holidays = [1,2,3,180,181,182,364,365]
 
     loads = get_italian_random_el_consumption(numero_utenze, region)
-    distribution = average_profile_creation_from_ARERA(provincia,giorno_iniziale,mercato="Tutti",fp="FP3",residenza='Tutti')
-    distribution = distribution / distribution.sum(axis = 0)
+    distribution_ = average_profile_creation_from_ARERA(provincia,giorno_iniziale,mercato="Tutti",fp="FP3",residenza='Tutti')
+    distribution = distribution_ / distribution_.sum(axis = 0)
     loads_standard_profiles = get_standard_app_profiles(time_step)
 
 
@@ -314,18 +316,17 @@ if __name__ == "__main__":
     Simulation time: {stop-start:.2f} s
     Simulation per dw: {(stop-start)/numero_utenze:.2f} s
     """)
-    plt.switch_backend("QtAgg")
-    plt.style.use('ggplot')
-    plt.rcParams['figure.facecolor'] = "#E9E9E9"
-    plt.rcParams['axes.facecolor'] = "white"
-    plt.rcParams['grid.color'] = "#E5E5E5"
-    plt.rcParams['xtick.color'] = "black"
-    plt.rcParams['ytick.color'] = "black"
-    plt.rcParams['axes.edgecolor'] = "black"
-    plt.rcParams["legend.edgecolor"] = 'black'
-    plt.rcParams["legend.facecolor"] = 'white'
-    plt.rcParams["xtick.labelcolor"] = 'black'
-    plt.rcParams["ytick.labelcolor"] = 'black'
+    # plt.style.use('ggplot')
+    # plt.rcParams['figure.facecolor'] = "#E9E9E9"
+    # plt.rcParams['axes.facecolor'] = "white"
+    # plt.rcParams['grid.color'] = "#E5E5E5"
+    # plt.rcParams['xtick.color'] = "black"
+    # plt.rcParams['ytick.color'] = "black"
+    # plt.rcParams['axes.edgecolor'] = "black"
+    # plt.rcParams["legend.edgecolor"] = 'black'
+    # plt.rcParams["legend.facecolor"] = 'white'
+    # plt.rcParams["xtick.labelcolor"] = 'black'
+    # plt.rcParams["ytick.labelcolor"] = 'black'
 
 
     fig, [ax1,ax2] = plt.subplots(nrows = 2, figsize = (10,8))
@@ -333,9 +334,9 @@ if __name__ == "__main__":
     ax1.set_xlabel("Time [min]")
     ax1.set_ylabel("Electric power [W]")
     ax1.ticklabel_format(axis='Y',style = 'scientific')
-    ax1.set_ylim(0,2000)
+    ax1.set_ylim(0,5)
 
-    ax2.plot(total_cons.mean(axis = 1).reshape(365,60*24).mean(axis = 0))
+    ax2.plot(total_cons.mean(axis = 1).reshape(365,ts_per_hour*24).mean(axis = 0))
     ax2.set_xlabel("Time [min]")
     ax2.set_ylabel("Electric power [W]")
     ax2.ticklabel_format(axis='Y',style = 'scientific')
@@ -347,12 +348,12 @@ if __name__ == "__main__":
     #
 
     fig, ax1 = plt.subplots(ncols = 1, figsize = (6,4))
-    ax1.plot(distribution[:,2:5], label = ["Weekday","Satuday","Sunday"])
+    ax1.plot(distribution_[:,2:5], label = ["Weekday","Satuday","Sunday"])
     ax1.legend()
     ax1.set_xlabel("Time [min]")
     ax1.set_ylabel("ToU PDF [-]")
     ax1.ticklabel_format(axis='Y',style = 'scientific')
-    ax1.set_ylim(0,0.0012)
+    # ax1.set_ylim(0,0.0012)
     plt.tight_layout()
     plt.show()
 
