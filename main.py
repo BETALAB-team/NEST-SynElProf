@@ -88,6 +88,34 @@ def average_profile_creation_from_ARERA(
 
     return distribution
 
+def get_standard_app_profiles_f(time_step):
+    """
+    Returns a dictionary of dataframes with
+    Parameters
+    ----------
+    time_step: str
+        string to define the resampling time step (e.g. 5min)
+
+    Returns
+    -------
+    dict
+        Dictionary of pandas DataFrame
+
+    """
+
+    # Read loads standard profiles
+    loads_standard_profiles = {}
+    parquet_files = glob.glob(os.path.join("Data","profiles_df_flx", '*.{}'.format('parquet')))
+    for f in parquet_files:
+        df = pd.read_parquet(f).loc(axis = 1)[:,"P"].fillna(0)
+        df.columns = df.columns.droplevel(level = 1)
+        loads_standard_profiles[f.split(os.sep)[-1][:-8]]  = df.set_index(pd.date_range(start="00:00", freq="1s", periods = len(df.index))).resample(time_step).mean()
+        # fig, ax = plt.subplots(figsize = (10,10))
+        # loads_standard_profiles[f.split(os.sep)[-1][:-8]].plot(ax = ax)
+        # fig.savefig(os.path.join("Data","plots", f'{f.split(os.sep)[-1][:-8]}.png'))
+        # plt.close()
+    return loads_standard_profiles
+
 def get_standard_app_profiles(time_step):
     """
     Returns a dictionary of dataframes with
@@ -107,8 +135,8 @@ def get_standard_app_profiles(time_step):
     loads_standard_profiles = {}
     parquet_files = glob.glob(os.path.join("Data","profiles_df", '*.{}'.format('parquet')))
     for f in parquet_files:
-        df = pd.read_parquet(f).loc(axis = 1)[:,"P"].fillna(0)
-        df.columns = df.columns.droplevel(level = 1)
+        df = pd.read_parquet(f).fillna(0)/1000
+        # df.columns = df.columns.droplevel(level = 1)
         loads_standard_profiles[f.split(os.sep)[-1][:-8]]  = df.set_index(pd.date_range(start="00:00", freq="1s", periods = len(df.index))).resample(time_step).mean()
         # fig, ax = plt.subplots(figsize = (10,10))
         # loads_standard_profiles[f.split(os.sep)[-1][:-8]].plot(ax = ax)
@@ -149,15 +177,15 @@ def generation_profile(consumo_annuale,
 
 
 if __name__ == "__main__":
-    numero_utenze = 5
+    numero_utenze = 1000
     provincia = "Padova"
     region = "Veneto"
     mercato = "Tutti"
     fp = "FP3"
     residenza = "Tutti"
     giorno_iniziale = 2 # Wednesday
-    time_step = "1min"
-    ts_per_hour = 60
+    time_step = "10min"
+    ts_per_hour = 600
 
     # consumo_annuale = 3000. # kWh
     # holidays = [1,2,3,180,181,182,364,365]
@@ -235,8 +263,8 @@ if __name__ == "__main__":
                 app_key = {
                     "Electric cooking": "Electric_hobs",
                     "Electric oven": "Electric_oven",
-                    "Television": "TV_and_Audio",
-                    "Monitor": "PC_and_Communication",
+                    "Television": "TV",
+                    "Monitor": "PC",
                     "Light": "Lights",
                 }[load]
                 distribution_length = get_length_variable_appliance(load)
@@ -278,7 +306,7 @@ if __name__ == "__main__":
                 # 
                 pass
 
-    np.savetxt("ts_results.csv",total_cons, delimiter = ",")
+    np.savetxt("ts_results.csv",total_cons, delimiter = ";")
     loads.to_csv("annual_results.csv")
 
     stop = time.time()
@@ -286,7 +314,7 @@ if __name__ == "__main__":
     Simulation time: {stop-start:.2f} s
     Simulation per dw: {(stop-start)/numero_utenze:.2f} s
     """)
-    #
+    plt.switch_backend("QtAgg")
     plt.style.use('ggplot')
     plt.rcParams['figure.facecolor'] = "#E9E9E9"
     plt.rcParams['axes.facecolor'] = "white"
@@ -298,6 +326,26 @@ if __name__ == "__main__":
     plt.rcParams["legend.facecolor"] = 'white'
     plt.rcParams["xtick.labelcolor"] = 'black'
     plt.rcParams["ytick.labelcolor"] = 'black'
+
+
+    fig, [ax1,ax2] = plt.subplots(nrows = 2, figsize = (10,8))
+    ax1.plot(total_cons[:,:10*24*60])
+    ax1.set_xlabel("Time [min]")
+    ax1.set_ylabel("Electric power [W]")
+    ax1.ticklabel_format(axis='Y',style = 'scientific')
+    ax1.set_ylim(0,2000)
+
+    ax2.plot(total_cons.mean(axis = 1).reshape(365,60*24).mean(axis = 0))
+    ax2.set_xlabel("Time [min]")
+    ax2.set_ylabel("Electric power [W]")
+    ax2.ticklabel_format(axis='Y',style = 'scientific')
+
+    plt.tight_layout()
+    plt.show()
+
+
+    #
+
     fig, ax1 = plt.subplots(ncols = 1, figsize = (6,4))
     ax1.plot(distribution[:,2:5], label = ["Weekday","Satuday","Sunday"])
     ax1.legend()

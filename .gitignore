@@ -1,4 +1,8 @@
-/Data/
+/Data/profiles_df_flx
+/Data/plots
+/Data/.ipynb_checkpoints
+/Data/analisi_profili_appliances.ipynb
+/Data/appliances_profiles.json
 annual_results.csv
 Figure_1.pdf
 Figure_1.png
