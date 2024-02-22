@@ -23,5 +23,7 @@ setup(
         "scipy", 
         "numpy",
         "pandas",
+        "pyarrow",
+        "fastparquet",
     ],
 )
