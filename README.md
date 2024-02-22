@@ -12,7 +12,7 @@ Download the repository to your local storage either using the zip file, going t
 
 or directly cloning the repository.
 
-> git clone https://github.com/BETALAB-team/NEST-UBEM-processing-tools.git
+> git clone https://github.com/BETALAB-team/NEST-SynElProf.git
 
 *Note: If you download the file as a zip file, you should first extract it.
 
