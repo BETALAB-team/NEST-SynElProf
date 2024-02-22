@@ -20,11 +20,11 @@ or directly cloning the repository.
 
 From your terminal:
 
-> pip install path/to/NEST-SynElProf
+> pip install *path/to/NEST-SynElProf*
 
 ## Run an example
 
-Run the example.py file to calculate the residential electric profiles. 
+Run the *example.py* file to calculate the residential electric profiles. 
 
 ## Acknowledgements
 
