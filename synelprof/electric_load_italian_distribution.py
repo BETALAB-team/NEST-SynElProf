@@ -1,8 +1,3 @@
-"""
-File with HVAC systems csvs
-This is an internal class, where typical systems performances are stored in a disctionary, using csv parsed strings
-"""
-
 __author__ = "Enrico Prataviera"
 __credits__ = ["Enrico Prataviera"]
 __license__ = "MIT"

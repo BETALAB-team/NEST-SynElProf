@@ -1,4 +1,8 @@
-# NEST 
+# NEST Residential Synthetic Electric Load profile generator
+
+This repository is a small python library to create, for an Italian case study, synthetic electric consumption profiles for residential dwelling. 
+
+
 
 ## Download the repository
 
@@ -11,6 +15,16 @@ or directly cloning the repository.
 > git clone https://github.com/BETALAB-team/NEST-UBEM-processing-tools.git
 
 *Note: If you download the file as a zip file, you should first extract it.
+
+## Install the library
+
+From your terminal:
+
+> pip install path/to/NEST-SynElProf
+
+## Run an example
+
+Run the example.py file to calculate the residential electric profiles. 
 
 ## Acknowledgements
 
