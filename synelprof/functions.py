@@ -38,7 +38,7 @@ def average_profile_creation_from_ARERA(
         A numpy array 24*12 rows by 365 columns
     """
 
-    data_ARERA = pd.read_csv(os.path.join("synelprof", "Dati_orari_ARERA_2021.csv"), index_col = [0, 1, 2, 3, 4], header = [0, 1], sep =";")
+    data_ARERA = pd.read_csv(os.path.join("Dati_orari_ARERA_2021.csv"), index_col = [0, 1, 2, 3, 4], header = [0, 1], sep =";")
     selected_province = pd.DataFrame(0, index = pd.date_range("00:00", periods = 24, freq = "1h"),columns = pd.MultiIndex.from_product([np.arange(12),["Weekday", "Sunday", "Saturday"]]))
 
     months ={
@@ -102,7 +102,7 @@ def get_standard_app_profiles_f(time_step):
 
     # Read loads standard profiles
     loads_standard_profiles = {}
-    parquet_files = glob.glob(os.path.join("", "profiles_df_flx", '*.{}'.format('parquet')))
+    parquet_files = glob.glob(os.path.join( "profiles_df_flx", '*.{}'.format('parquet')))
     for f in parquet_files:
         df = pd.read_parquet(f).loc(axis = 1)[:,"P"].fillna(0)
         df.columns = df.columns.droplevel(level = 1)
@@ -130,7 +130,7 @@ def get_standard_app_profiles(time_step):
 
     # Read loads standard profiles
     loads_standard_profiles = {}
-    parquet_files = glob.glob(os.path.join("synelprof", "profiles_df", '*.{}'.format('parquet')))
+    parquet_files = glob.glob(os.path.join("profiles_df", '*.{}'.format('parquet')))
     for f in parquet_files:
         df = pd.read_parquet(f).fillna(0)/1000
         # df.columns = df.columns.droplevel(level = 1)
@@ -203,6 +203,9 @@ def create_synthetic_profile(
     total_cons = np.zeros([24*ts_per_hour*365, numero_utenze])
     el_load_matrixes = {}
     start = time.time()
+
+    counters = []
+
     for dw in range(numero_utenze):
         el_load_matrixes[dw] = {}
         # total_cons[dw] = np.zeros([24*12*365])
@@ -273,9 +276,9 @@ def create_synthetic_profile(
                 distribution_length = get_length_variable_appliance(load)
                 daily_length_ts = (distribution_length.rvs(size=365) / 3600 * ts_per_hour).astype(int)
                 daily_length_ts[daily_length_ts==0] = 1
+                daily_length_ts += 1
                 load_profile_tot = loads_standard_profiles[app_key].sample(axis='columns').iloc(axis=1)[0].values
-                sample = np.random.rand(365)
-
+                load_profile_tot = np.hstack([[0], load_profile_tot])
                 min_daily_length = np.min(daily_length_ts)
                 max_number_of_daily_on_ev_int = int(np.round(loads.loc[dw][load] / 365 / (load_profile_tot[:int(min_daily_length)].sum() / ts_per_hour)))
                 y_guess = np.random.rand(np.max(max_number_of_daily_on_ev_int), 365)
@@ -286,7 +289,7 @@ def create_synthetic_profile(
                 el_load = np.zeros([3*24*ts_per_hour, 365])
                 for d in range(365):
                     load_profile = load_profile_tot[:int(daily_length_ts[d])]
-                    load_profile_time_step_average = int(np.interp(np.cumsum(load_profile).mean(), np.cumsum(load_profile), np.arange(len(load_profile))))
+                    load_profile_time_step_average = np.round(np.interp(np.cumsum(load_profile).mean(), np.cumsum(load_profile), np.arange(len(load_profile))))
                     x_event[d,:] = x_event[d,:] - load_profile_time_step_average + 24 * ts_per_hour
                     x_end[d,:] = x_event[d,:] + len(load_profile)
 
@@ -306,10 +309,101 @@ def create_synthetic_profile(
                 total_cons[:,dw] += el_load_matrixes[dw][load].T.reshape(8760*ts_per_hour)
 
             if load in ['Small appliances']:
-                # 
-                pass
+                actual_load = 0
+                dw_small_app_load = loads.loc[dw][load]
+                flag = True
+                el_load = np.zeros([3 * 24 * ts_per_hour, 365])
+                counter = 0
+                while flag:
+                    counter += 1
+                    if counter >= 100:
+                        flag = False
+                    load_profile = loads_standard_profiles[app_key].sample(axis='columns').iloc(axis=1)[0].values
+                    percentage_covered = (dw_small_app_load - actual_load)/ 365 / (load_profile.sum()/ts_per_hour)
+                    actual_load += load_profile.sum() * 365/ts_per_hour
+                    if percentage_covered < 1:
+                        if np.random.rand(1)[0] < percentage_covered:
+                            flag = False
+                        else:
+                            break
 
-    return total_cons, loads
+                    y_guess = np.random.rand(1,365)
+                    cdf = np.cumsum(distribution, axis = 0)
+                    x_event = np.array([np.interp(y_guess[:,i], cdf[:,i], np.arange(len(cdf[:,0]))) for i in range(365)]).astype(int)
+
+                    load_profile_time_step_average = int(np.interp(np.cumsum(load_profile).mean(), np.cumsum(load_profile), np.arange(len(load_profile))))
+
+                    x_event = x_event - load_profile_time_step_average + 24 * ts_per_hour
+                    x_end = x_event + len(load_profile)
+
+                    for d in range(365):
+                        el_load[x_event[d,0]:x_end[d,0], d] += load_profile
+
+                el_load[24*ts_per_hour:24*ts_per_hour*2,:-1] += el_load[:24*ts_per_hour,1:]
+                el_load[24*ts_per_hour:24*ts_per_hour*2,1:] += el_load[24*ts_per_hour*2:24*ts_per_hour*3,:-1]
+                el_load = el_load[24*ts_per_hour:24*ts_per_hour*2,:]
+
+                if np.sum(el_load) > 0:
+                    el_load_matrixes[dw][load] = el_load/(np.sum(el_load)/ts_per_hour) * loads.loc[dw][load]
+                else:
+                    el_load_matrixes[dw][load] = el_load
+
+                total_cons[:,dw] += el_load_matrixes[dw][load].T.reshape(8760*ts_per_hour)
+                counters.append(counter)
+
+    return total_cons, loads, el_load_matrixes, counters
+
+if __name__ == "__main__":
+    import matplotlib
+    matplotlib.use('TkAgg')
+    import matplotlib.pyplot as plt
+    start = time.time()
+    numero_utenze = 100
+    ts = 6
+    total_cons, loads, el_load_matrixes,count = create_synthetic_profile(
+        n_dwelling=numero_utenze,
+        province="Padova",
+        region="Veneto",
+        timestep_per_hour=ts,
+        power_range="FP3",
+        initial_day=0,
+    )
+    stop = time.time()
+    print(f"""
+    Simulation time: {stop-start:.2f} s
+    Simulation per dw: {(stop-start)/numero_utenze:.2f} s
+    """)
+
+    np.savetxt("ts_results.csv",total_cons, delimiter = ";")
+    loads.to_csv("annual_results.csv")
+
+    plt.style.use('ggplot')
+    plt.rcParams['figure.facecolor'] = "#E9E9E9"
+    plt.rcParams['axes.facecolor'] = "white"
+    plt.rcParams['grid.color'] = "#E5E5E5"
+    plt.rcParams['xtick.color'] = "black"
+    plt.rcParams['ytick.color'] = "black"
+    plt.rcParams['axes.edgecolor'] = "black"
+    plt.rcParams["legend.edgecolor"] = 'black'
+    plt.rcParams["legend.facecolor"] = 'white'
+    plt.rcParams["xtick.labelcolor"] = 'black'
+    plt.rcParams["ytick.labelcolor"] = 'black'
+
+    fig, [ax1, ax2] = plt.subplots(nrows=2, figsize=(10, 8))
+    ax1.plot(total_cons[:, :10 * 24 * 60])
+    ax1.set_xlabel("Time [min]")
+    ax1.set_ylabel("Electric power [W]")
+    ax1.ticklabel_format(axis='Y', style='scientific')
+    ax1.set_ylim(0, 5)
+
+    ax2.plot(total_cons.mean(axis=1).reshape(365, ts * 24).mean(axis=0))
+    ax2.set_xlabel("Time [min]")
+    ax2.set_ylabel("Electric power [W]")
+    ax2.ticklabel_format(axis='Y', style='scientific')
+
+    plt.tight_layout()
+    plt.show()
+
     # np.savetxt("ts_results.csv",total_cons, delimiter = ";")
     # loads.to_csv("annual_results.csv")
     #
