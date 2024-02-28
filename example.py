@@ -1,15 +1,20 @@
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 from synelprof.functions import create_synthetic_profile
 
-total_cons, loads = create_synthetic_profile(
-    n_dwelling = 10,
+total_cons, loads, el_load_matrixes, counters = create_synthetic_profile(
+    n_dwelling = 100,
     province = "Padova",
     region = "Veneto",
     timestep_per_hour=1,
     power_range="FP3",
     initial_day=0,
+    run_syn_prof = False,
 )
+
+# np.savetxt("ts_results.csv",total_cons, delimiter = ";")
+loads.to_csv("annual_results.csv", sep = ";")
 
 plt.style.use('ggplot')
 plt.rcParams['figure.facecolor'] = "#E9E9E9"
