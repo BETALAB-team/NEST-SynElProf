@@ -171,28 +171,29 @@ Lazio, Campania, Basilicata, Molise, Puglia, Calabria, Sicilia, Sardegna
     return loads #, loads[loads!=0]
 
 
-# import time
-# import os
-# st = time.time()
-# loads, loads_wo_zeros = get_italian_random_el_loads(1000000,"Veneto")
-#
-# for l in loads:
-#     print(f"{time.time()-st:.2f} s")
-#
-#     fig, ax = plt.subplots(figsize = (15,15))
-#     df = loads_wo_zeros[l]
-#     df.hist(ax = ax,bins= 100, density=True)
-#     ax_ = ax.twinx()
-#     x = np.linspace(0,1000, 100)
-#
-#     max_lim = 0.001
-#     if l!= 'Tot':
-#         ax_.plot(x, electric_load_italian_dict[f"PDF {l}"].pdf(x), lw=2, alpha=0.6, label=f'{k}', color = 'r')
-#         max_lim = np.max(electric_load_italian_dict[f"PDF {l}"].pdf(x))
-#     ax_.set_ylim(0,max_lim)
-#     ax.set_ylim(0, max_lim)
-#     fig.suptitle(f"{l}")
-#     plt.tight_layout()
-#     fig.savefig(os.path.join("el_load_dist",f"el_load_{l}.png"))
-#     #plt.show()
-#     plt.close()
+import time
+import os
+import matplotlib.pyplot as plt
+st = time.time()
+loads = get_italian_random_el_consumption(1000000,"Veneto")
+loads_wo_zeros = loads[loads!=0]
+for l in loads:
+    print(f"{time.time()-st:.2f} s")
+
+    fig, ax = plt.subplots(figsize = (15,15))
+    df = loads_wo_zeros[l]
+    df.hist(ax = ax,bins= 100, density=True)
+    ax_ = ax.twinx()
+    x = np.linspace(0,1000, 100)
+
+    max_lim = 0.001
+    if l!= 'Tot':
+        ax_.plot(x, electric_load_italian_dict[f"PDF {l}"].pdf(x), lw=2, alpha=0.6, label=f'{k}', color = 'r')
+        max_lim = np.max(electric_load_italian_dict[f"PDF {l}"].pdf(x))
+    ax_.set_ylim(0,max_lim)
+    ax.set_ylim(0, max_lim)
+    fig.suptitle(f"{l}")
+    plt.tight_layout()
+    fig.savefig(os.path.join("profiles_df",f"el_load_{l}.png"))
+    #plt.show()
+    plt.close()
