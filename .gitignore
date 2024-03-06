@@ -14,4 +14,4 @@ Data/.idea/
 ts_results.csv
 /venv/
 nest_synelprof.egg-info/
- synelprof/profiles_df/*.png
+/synelprof/profiles_df/*.png
