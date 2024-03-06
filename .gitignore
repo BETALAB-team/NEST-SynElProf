@@ -1,8 +1,10 @@
+/spyproject/
 /synelprof/profiles_df_flx
 /synelprof/plots
 /synelprof/.ipynb_checkpoints
 /synelprof/analisi_profili_appliances.ipynb
 /synelprof/appliances_profiles.json
+/synelprof/__pycache__/
 annual_results.csv
 Figure_1.pdf
 Figure_1.png
