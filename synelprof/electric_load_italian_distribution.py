@@ -36,67 +36,94 @@ TrentinoAltoAdige	0.999	0.371	0.983	0.063	0.533	0.288	0.853	0.958	0.566	0.996	0.
 """,
 "National_distributions": {
     "Refrigerator":{
-            "Name":"lognorm",
-            "s" : 0.3471,
-            "scale" : 350.75921818799463,
-            "loc" : 0.,
+            "Name": "lognorm",
+            "s": 0.3263,
+            "scale": 342.4069699,
+            "loc": 0.,
         },
     "Freezer":{
-            "Name":"expon",
-            "scale" : 362.5329,
-            "loc" : 0.,
+            # "Name":"expon",
+            # "scale" : 362.5329,
+            # "loc" : 0.,
+            "Name" : "uniform",
+            "scale": 309.2229,
+            "loc" : 190.7771,
         },
     "Washing machine":{
-            "Name":"norm",
-            "scale" : 131.7528,
-            "loc" : 263.7713,
-        },
+            # "Name": "norm",
+            # "scale": 131.7528,
+            # "loc": 263.7713, 
+            "Name": "weibull_min",
+            "c": 2.0572,
+            "scale": 296.3990,
+    },
     "Clothes dryer":{
-            "Name":"expon",
-            "scale" : 299.2194,
-            "loc" : 0.,
+            # "Name":"expon",
+            # "scale" : 299.2194,
+            # "loc" : 0.,
+            "Name": "gamma",
+            "a": 27.8221,
+            "scale": 10.9432,
         },
     "Dish washer": {
-        "Name": "expon",
-        "scale": 325.6673,
-        "loc": 0.,
+        # "Name": "expon",
+        # "scale": 325.6673,
+        # "loc": 0.,
+        "Name" : "uniform",
+        "scale": 172.5643,
+        "loc" : 227.4357,
     },
     "Electric cooking": {
-        "Name": "triang",
-        "c": 1.,
-        "scale": 1187.7350999999999,
-        "loc": 69.8649,
+        # "Name": "triang",
+        # "c": 1.,
+        # "scale": 1187.7350999999999,
+        # "loc": 69.8649,
+        "Name" : "uniform",
+        "scale": 1187.7351,
+        "loc" : 69.8649,
     },
     "Electric oven": {
-        "Name": "expon",
-        "scale": 136.2937,
+        "Name": "lognorm",
+        "s": 0.6835,
+        "scale": 103.6272162,
         "loc": 0.,
     },
     "Television": {
         "Name": "weibull_min",
-        "c": 1.865,
-        "scale": 192.6315,
+        "c": 1.8130,
+        "scale": 187.2186,
     },
     "Monitor": {
-        "Name": "weibull_min",
-        "c": 1.8383,
-        "scale": 151.6776,
+        # "Name": "weibull_min",
+        # "c": 1.8383,
+        # "scale": 151.6776,
+        "Name": "lognorm",
+        "s": 0.5414,
+        "scale": 111.4192347,
+        "loc": 0.,
     },
     "Light": {
         "Name": "lognorm",
-        "s": 0.6698,
-        "scale": 327.0784335215426,
+        "s": 0.6834,
+        "scale": 306.4639101,
         "loc": 0.,
+        # "Name": "gamma",
+        # "a": 6.3351,
+        # "scale": 70.2625,
     },
     "Small appliances": {
-        "Name": "gamma",
-        "a": 6.3351,
-        "scale": 70.2625,
+        # "Name": "gamma",
+        # "a": 6.3351,
+        # "scale": 70.2625,
+        "Name": "lognorm",
+        "s": 0.4885,
+        "scale": 360.1065644,
+        "loc": 0.,
     },
     "Cooling split": {
         "Name": "lognorm",
-        "s": 0.83,
-        "scale": 326.6861748036186,
+        "s": 0.8127,
+        "scale": 315.4499398,
         "loc": 0.,
     },
 }
@@ -122,7 +149,7 @@ for k, el in electric_load_italian_distribution["National_distributions"].items(
     elif el["Name"] == "gamma":
         electric_load_italian_dict[f"PDF {k}"] = gamma(el["a"], scale = el["scale"])
     elif el["Name"] == "uniform":
-        raise NotImplementedError
+        electric_load_italian_dict[f"PDF {k}"] = uniform(loc = el["loc"], scale = el["scale"])
     else:
         electric_load_italian_dict[f"PDF {k}"] = None
 
@@ -175,25 +202,32 @@ import time
 import os
 import matplotlib.pyplot as plt
 st = time.time()
-loads = get_italian_random_el_consumption(1000000,"Veneto")
-loads_wo_zeros = loads[loads!=0]
-for l in loads:
-    print(f"{time.time()-st:.2f} s")
-
-    fig, ax = plt.subplots(figsize = (15,15))
-    df = loads_wo_zeros[l]
-    df.hist(ax = ax,bins= 100, density=True)
-    ax_ = ax.twinx()
-    x = np.linspace(0,1000, 100)
-
-    max_lim = 0.001
-    if l!= 'Tot':
-        ax_.plot(x, electric_load_italian_dict[f"PDF {l}"].pdf(x), lw=2, alpha=0.6, label=f'{k}', color = 'r')
-        max_lim = np.max(electric_load_italian_dict[f"PDF {l}"].pdf(x))
-    ax_.set_ylim(0,max_lim)
-    ax.set_ylim(0, max_lim)
-    fig.suptitle(f"{l}")
-    plt.tight_layout()
-    fig.savefig(os.path.join("profiles_df",f"el_load_{l}.png"))
-    #plt.show()
-    plt.close()
+# for region in ["ValleDAosta", "Piemonte", "Liguria", "Lombardia", "Veneto", "TrentinoAltoAdige",
+#     "FriuliVeneziaGiulia", "EmiliaRomagna", "Umbria", "Toscana", "Marche", "Abruzzo",
+#     "Lazio", "Campania", "Basilicata", "Molise", "Puglia", "Calabria", "Sicilia", "Sardegna"]:
+for region in ["ValleDAosta", "Piemonte", "Liguria", "Lombardia", "Veneto", "TrentinoAltoAdige",
+               "FriuliVeneziaGiulia", "EmiliaRomagna", "Umbria", "Toscana", "Marche", "Abruzzo",
+               "Lazio", "Campania", "Basilicata", "Molise", "Puglia", "Calabria", "Sicilia", "Sardegna"]:
+    loads = get_italian_random_el_consumption(1000000,region)
+    loads.to_csv(os.path.join("results",f"results_{region}.csv"), sep = ";")
+    loads_wo_zeros = loads[loads!=0]
+    for l in loads:
+        print(f"{time.time()-st:.2f} s")
+    
+        fig, ax = plt.subplots(figsize = (15,15))
+        df = loads_wo_zeros[l]
+        df.hist(ax = ax,bins= 100, density=True)
+        ax_ = ax.twinx()
+        x = np.linspace(0,1000, 100)
+    
+        max_lim = 0.001
+        if l!= 'Tot':
+            ax_.plot(x, electric_load_italian_dict[f"PDF {l}"].pdf(x), lw=2, alpha=0.6, label=f'{k}', color = 'r')
+            max_lim = np.max(electric_load_italian_dict[f"PDF {l}"].pdf(x))
+        ax_.set_ylim(0,max_lim)
+        ax.set_ylim(0, max_lim)
+        fig.suptitle(f"{l}")
+        plt.tight_layout()
+        fig.savefig(os.path.join("profiles_df",f"el_load_{l}.png"))
+        #plt.show()
+        plt.close()
