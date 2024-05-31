@@ -1,20 +1,52 @@
+import os
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from synelprof.functions import create_synthetic_profile
 
-total_cons, loads, el_load_matrixes, counters = create_synthetic_profile(
-    n_dwelling = 100,
-    province = "Padova",
-    region = "Veneto",
-    timestep_per_hour=2,
-    power_range="FP3",
-    initial_day=0,
-    run_syn_prof = False,
-)
+for i in range(100): 
+    print(i)
+    path = os.path.join("results_Padova")
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    total_cons, loads, el_load_matrixes, counters = create_synthetic_profile(
+        n_dwelling = 100,
+        province = "Padova",
+        region = "Veneto",
+        timestep_per_hour=2,
+        power_range="FP2",
+        initial_day=0,
+        run_syn_prof = True,
+    )
 
-# np.savetxt("ts_results.csv",total_cons, delimiter = ";")
-loads.to_csv("annual_results.csv", sep = ";")
+    np.savetxt(os.path.join(path,f"ts_results_FP2_{i}.csv"),total_cons, delimiter = ";")
+    loads.to_csv(os.path.join(path,f"annual_results_FP2_{i}.csv"), sep = ";")
+    
+    total_cons, loads, el_load_matrixes, counters = create_synthetic_profile(
+        n_dwelling = 100,
+        province = "Padova",
+        region = "Veneto",
+        timestep_per_hour=2,
+        power_range="FP3",
+        initial_day=0,
+        run_syn_prof = True,
+    )
+
+    np.savetxt(os.path.join(path,f"ts_results_FP3_{i}.csv"),total_cons, delimiter = ";")
+    loads.to_csv(os.path.join(path,f"annual_results_FP3_{i}.csv"), sep = ";")
+    
+    total_cons, loads, el_load_matrixes, counters = create_synthetic_profile(
+        n_dwelling = 100,
+        province = "Padova",
+        region = "Veneto",
+        timestep_per_hour=2,
+        power_range="FP4",
+        initial_day=0,
+        run_syn_prof = True,
+    )
+
+    np.savetxt(os.path.join(path,f"ts_results_FP4_{i}.csv"),total_cons, delimiter = ";")
+    loads.to_csv(os.path.join(path,f"annual_results_FP4_{i}.csv"), sep = ";")
 
 plt.style.use('ggplot')
 plt.rcParams['figure.facecolor'] = "#E9E9E9"

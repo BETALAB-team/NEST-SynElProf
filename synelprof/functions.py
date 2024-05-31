@@ -361,8 +361,8 @@ if __name__ == "__main__":
     matplotlib.use('TkAgg')
     import matplotlib.pyplot as plt
     start = time.time()
-    numero_utenze = 100
-    ts = 6
+    numero_utenze = 2
+    ts = 2
     total_cons, loads, el_load_matrixes,count = create_synthetic_profile(
         n_dwelling=numero_utenze,
         province="Padova",
@@ -370,6 +370,7 @@ if __name__ == "__main__":
         timestep_per_hour=ts,
         power_range="FP3",
         initial_day=0,
+        run_syn_prof = True,
     )
     stop = time.time()
     print(f"""

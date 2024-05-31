@@ -4,6 +4,7 @@
 /synelprof/.ipynb_checkpoints
 /synelprof/analisi_profili_appliances.ipynb
 /synelprof/appliances_profiles.json
+/synelprof/results/
 /synelprof/__pycache__/
 annual_results.csv
 Figure_1.pdf
@@ -17,3 +18,5 @@ ts_results.csv
 /venv/
 nest_synelprof.egg-info/
 /synelprof/profiles_df/*.png
+/results_Padova/
+/.spyproject/
