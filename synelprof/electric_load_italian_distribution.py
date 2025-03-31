@@ -210,7 +210,7 @@ if __name__ == "__main__":
     for region in ["ValleDAosta", "Piemonte", "Liguria", "Lombardia", "Veneto", "TrentinoAltoAdige",
                    "FriuliVeneziaGiulia", "EmiliaRomagna", "Umbria", "Toscana", "Marche", "Abruzzo",
                    "Lazio", "Campania", "Basilicata", "Molise", "Puglia", "Calabria", "Sicilia", "Sardegna"]:
-        loads = get_italian_random_el_consumption(1000000,region)
+        loads = get_italian_random_el_consumption(10,region)
         loads.to_csv(os.path.join("results",f"results_{region}.csv"), sep = ";")
         loads_wo_zeros = loads[loads!=0]
         for l in loads:
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         
             fig, ax = plt.subplots(figsize = (15,15))
             df = loads_wo_zeros[l]
-            df.hist(ax = ax,bins= 100, density=True)
+            # df.hist(ax = ax,bins= 100, density=True)
             ax_ = ax.twinx()
             x = np.linspace(0,1000, 100)
         
