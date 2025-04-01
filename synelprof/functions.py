@@ -7,6 +7,9 @@ import pandas as pd
 import numpy as np
 from synelprof.electric_load_italian_distribution import get_italian_random_el_consumption
 
+from importlib import resources as impresources
+from synelprof import profiles_df as data_files
+
 def average_profile_creation_from_ARERA(
                         provincia,
                        giorno_iniziale,
@@ -38,7 +41,9 @@ def average_profile_creation_from_ARERA(
         A numpy array 24*12 rows by 365 columns
     """
 
-    data_ARERA = pd.read_csv(os.path.join("synelprof","Dati_orari_ARERA_2021.csv"), index_col = [0, 1, 2, 3, 4], header = [0, 1], sep =";")
+    ARERA_path = impresources.files(data_files) / 'Dati_orari_ARERA_2021.csv'
+
+    data_ARERA = pd.read_csv(ARERA_path, index_col = [0, 1, 2, 3, 4], header = [0, 1], sep =";")
     selected_province = pd.DataFrame(0, index = pd.date_range("00:00", periods = 24, freq = "1h"),columns = pd.MultiIndex.from_product([np.arange(12),["Weekday", "Sunday", "Saturday"]]))
 
     months ={
@@ -102,11 +107,15 @@ def get_standard_app_profiles_f(time_step):
 
     # Read loads standard profiles
     loads_standard_profiles = {}
-    parquet_files = glob.glob(os.path.join( "profiles_df_flx", '*.{}'.format('parquet')))
+
+    parquet_files = ["Dishwasher","Electric_hobs","Electric_oven","Freezer","Fridge","Lights","PC","Small_appliances","Tumble_dryer","TV","Washing_machine"]
+
     for f in parquet_files:
-        df = pd.read_parquet(f).loc(axis = 1)[:,"P"].fillna(0)
+        parquet_path = impresources.files(data_files) / (f + '.parquet')
+
+        df = pd.read_parquet(parquet_path).loc(axis = 1)[:,"P"].fillna(0)
         df.columns = df.columns.droplevel(level = 1)
-        loads_standard_profiles[f.split(os.sep)[-1][:-8]]  = df.set_index(pd.date_range(start="00:00", freq="1s", periods = len(df.index))).resample(time_step).mean()
+        loads_standard_profiles[f]  = df.set_index(pd.date_range(start="00:00", freq="1s", periods = len(df.index))).resample(time_step).mean()
         # fig, ax = plt.subplots(figsize = (10,10))
         # loads_standard_profiles[f.split(os.sep)[-1][:-8]].plot(ax = ax)
         # fig.savefig(os.path.join("synelprof","plots", f'{f.split(os.sep)[-1][:-8]}.png'))
@@ -130,11 +139,17 @@ def get_standard_app_profiles(time_step):
 
     # Read loads standard profiles
     loads_standard_profiles = {}
-    parquet_files = glob.glob(os.path.join("synelprof","profiles_df", '*.{}'.format('parquet')))
+    parquet_files = ["Dishwasher","Electric_hobs","Electric_oven","Freezer","Fridge","Lights","PC","Small_appliances","Tumble_dryer","TV","Washing_machine"]
+
+
+
     for f in parquet_files:
-        df = pd.read_parquet(f).fillna(0)/1000
+
+        parquet_path = impresources.files(data_files) / (f + '.parquet')
+
+        df = pd.read_parquet(parquet_path).fillna(0)/1000
         # df.columns = df.columns.droplevel(level = 1)
-        loads_standard_profiles[f.split(os.sep)[-1][:-8]]  = df.set_index(pd.date_range(start="00:00", freq="1s", periods = len(df.index))).resample(time_step).mean()
+        loads_standard_profiles[f]  = df.set_index(pd.date_range(start="00:00", freq="1s", periods = len(df.index))).resample(time_step).mean()
         # fig, ax = plt.subplots(figsize = (10,10))
         # loads_standard_profiles[f.split(os.sep)[-1][:-8]].plot(ax = ax)
         # fig.savefig(os.path.join("synelprof","plots", f'{f.split(os.sep)[-1][:-8]}.png'))

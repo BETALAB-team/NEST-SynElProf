@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from synelprof.functions import create_synthetic_profile
 
-for i in range(100): 
+for i in range(1):
     print(i)
     path = os.path.join("results_Padova")
     if not os.path.isdir(path):
