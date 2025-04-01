@@ -45,4 +45,7 @@ packages  = [
 ]
 
 [tool.setuptools.package-data]
-myModule = ["*.csv","*.parquet"]
+synelprof = [
+"profiles_df/*.csv",
+"profiles_df/*.parquet",
+]
