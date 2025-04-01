@@ -4,27 +4,15 @@ This repository is a small python library to create, for an Italian case study, 
 
 
 
-## Download the repository
+## Install the package
+Inside your python virtual environment
 
-Download the repository to your local storage either using the zip file, going to:
-
-> Code -> Download ZIP
-
-or directly cloning the repository.
-
-> git clone https://github.com/BETALAB-team/NEST-SynElProf.git
-
-*Note: If you download the file as a zip file, you should first extract it.
-
-## Install the library
-
-From your terminal:
-
-> pip install *path/to/NEST-SynElProf*
+> pip install git+https://github.com/BETALAB-team/NEST-SynElProf
 
 ## Run an example
 
 Run the *example.py* file to calculate the residential electric profiles. 
+
 
 ## Acknowledgements
 
