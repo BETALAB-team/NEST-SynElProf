@@ -39,6 +39,7 @@ dev = [
 Homepage = 'https://github.com/BETALAB-team/NEST-SynElProf'
 
 [tool.setuptools]
-py-modules  = [
+packages  = [
 "synelprof",
+"synelprof.profiles_df",
 ]
