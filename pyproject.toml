@@ -45,5 +45,4 @@ packages  = [
 ]
 
 [tool.setuptools.package-data]
-myModule = ["*.csv"]
-myModule = ["*.parquet"]
+myModule = ["*.csv","*.parquet"]
