@@ -38,7 +38,5 @@ dev = [
 [project.urls]
 Homepage = 'https://github.com/BETALAB-team/NEST-SynElProf'
 
-[tool.setuptools]
-packages  = [
-"synelprof",
-]
+[tool.setuptools.packages.find]
+where = ["synelprof"]
